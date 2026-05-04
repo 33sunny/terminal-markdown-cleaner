@@ -176,6 +176,31 @@ test('keeps fenced code blocks verbatim after terminal cleanup', () => {
   );
 });
 
+test('keeps adjacent shell commands on separate lines while joining wrapped arguments', () => {
+  const input = [
+    '没有服务器时，想搬到另一台电脑，最简单是直接打包整个',
+    '文件夹，注意要包含隐藏的 .git 文件夹：',
+    '',
+    'cd /Users/shan/projects/productivity',
+    'zip -r terminal-markdown-cleaner.zip terminal-',
+    'markdown-cleaner',
+    '',
+    '另一台电脑解压后，它仍然是 Git 仓库，历史记录也在。',
+  ].join('\n');
+
+  assert.equal(
+    cleanMarkdown(input),
+    [
+      '没有服务器时，想搬到另一台电脑，最简单是直接打包整个文件夹，注意要包含隐藏的 .git 文件夹：',
+      '',
+      'cd /Users/shan/projects/productivity',
+      'zip -r terminal-markdown-cleaner.zip terminal-markdown-cleaner',
+      '',
+      '另一台电脑解压后，它仍然是 Git 仓库，历史记录也在。',
+    ].join('\n')
+  );
+});
+
 test('keeps hard markdown breaks when the previous line ends with punctuation', () => {
   const input = [
     '不能抽成“男主说自己做小事”。应该抽成：',

@@ -105,6 +105,10 @@ function shouldMerge(previous, current) {
     return false;
   }
 
+  if (isShellCommandLine(prev) && isShellCommandLine(next)) {
+    return false;
+  }
+
   if (isMarkdownBlockStart(next)) {
     return false;
   }
@@ -165,6 +169,10 @@ function joinerFor(left, right, settings) {
     return '';
   }
 
+  if (last === '-' && /[\p{Letter}\p{Number}_]/u.test(first)) {
+    return '';
+  }
+
   if (/[\[({<"'`]/u.test(last) || /[\])}>.,;:!?，。！？；：、"'`]/u.test(first)) {
     return '';
   }
@@ -188,6 +196,12 @@ function isMarkdownBlockStart(line) {
 
 function isHorizontalRule(line) {
   return /^ {0,3}(?:[-*_]){3,}\s*$/u.test(line);
+}
+
+function isShellCommandLine(line) {
+  return /^(?:awk|brew|bun|cargo|cat|cd|chmod|chown|code|cp|curl|docker|docker-compose|echo|export|find|git|go|grep|ls|make|mkdir|mv|nano|node|npm|npx|open|pnpm|pwd|python|python3|rg|rm|rsync|scp|sed|ssh|tar|touch|unzip|uv|vim|wget|yarn|zip)(?:\s|$)/u.test(
+    line.trim()
+  );
 }
 
 function endsWithHardStop(line) {
