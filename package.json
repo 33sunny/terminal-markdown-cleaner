@@ -1,0 +1,11 @@
+{
+  "name": "terminal-markdown-cleaner",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Clean terminal-copied Markdown and box drawing tables from Ghostty, Claude Code, and Codex CLI.",
+  "scripts": {
+    "start": "python3 -m http.server 4173",
+    "test": "node --test test/*.test.mjs",
+    "check": "node --check src/app.mjs && node --check src/cleaner.mjs && node --check src/shortcuts.mjs && node --check src/table-cleaner.mjs && node --check src/terminal-grid.mjs"
+  }
+}

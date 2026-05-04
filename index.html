@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Terminal Markdown Cleaner</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <header class="topbar">
+        <div>
+          <h1>Terminal Markdown Cleaner</h1>
+          <p>Ghostty / Claude Code / Codex CLI</p>
+        </div>
+        <div class="actions">
+          <button id="sample-button" type="button" title="填入示例">Sample</button>
+        </div>
+      </header>
+
+      <nav class="tabs" aria-label="Cleaner mode">
+        <button class="tab active" type="button" data-mode="markdown" aria-selected="true">
+          Markdown
+        </button>
+        <button class="tab" type="button" data-mode="table" aria-selected="false">
+          Table
+        </button>
+      </nav>
+
+      <section class="options" aria-label="Cleanup options">
+        <label>
+          <input id="merge-soft-wraps" type="checkbox" checked />
+          <span>合并软换行</span>
+        </label>
+        <label>
+          <input id="clean-terminal-chrome" type="checkbox" checked />
+          <span>清理终端符号</span>
+        </label>
+        <label>
+          <input id="preserve-code-fences" type="checkbox" checked />
+          <span>保留代码块</span>
+        </label>
+        <label>
+          <input id="compact-cjk" type="checkbox" checked />
+          <span>中文紧凑合并</span>
+        </label>
+        <div id="table-format-option" class="segmented-option" hidden>
+          <span>表格输出</span>
+          <div class="segmented-control" role="radiogroup" aria-label="Table output format">
+            <label>
+              <input type="radio" name="table-output-format" value="box" checked />
+              <span>Box</span>
+            </label>
+            <label>
+              <input type="radio" name="table-output-format" value="markdown" />
+              <span>Markdown</span>
+            </label>
+          </div>
+        </div>
+      </section>
+
+      <section class="workspace" aria-label="Cleanup workspace">
+        <div class="pane">
+          <div class="pane-header">
+            <div class="pane-title">
+              <h2>Paste</h2>
+              <span id="raw-count">0 chars</span>
+            </div>
+            <button id="clear-button" type="button" title="清空输入和输出，快捷键 F1">
+              Clear
+            </button>
+          </div>
+          <textarea
+            id="raw-input"
+            spellcheck="false"
+            placeholder="把终端里复制出来的内容粘贴到这里"
+          ></textarea>
+        </div>
+
+        <div class="pane">
+          <div class="pane-header">
+            <div class="pane-title">
+              <h2>Clean</h2>
+              <span id="clean-count">0 chars</span>
+            </div>
+            <button
+              id="copy-button"
+              type="button"
+              class="primary"
+              title="复制清洗结果，快捷键 Command+C"
+            >
+              Copy
+            </button>
+          </div>
+          <div class="output-stack">
+            <div
+              id="visual-preview"
+              class="visual-preview"
+              aria-label="Terminal-grid table preview"
+              hidden
+            ></div>
+            <textarea id="clean-output" spellcheck="false"></textarea>
+          </div>
+        </div>
+      </section>
+
+      <footer class="statusbar">
+        <span id="status">Ready</span>
+        <span>Local only</span>
+      </footer>
+    </main>
+
+    <script type="module" src="./src/app.mjs"></script>
+  </body>
+</html>
