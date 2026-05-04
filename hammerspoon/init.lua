@@ -1,6 +1,9 @@
 local cleanerScript =
   "/Users/shan/projects/productivity/terminal-markdown-cleaner/bin/clean-terminal-markdown.mjs"
 
+local eventtap = hs.eventtap
+local keycodes = hs.keycodes.map
+
 local function isGhostty(app)
   if app == nil then
     return false
@@ -29,4 +32,25 @@ local function cleanGhosttyClipboard()
   task:start()
 end
 
-hs.hotkey.bind({ "cmd", "shift" }, "C", cleanGhosttyClipboard)
+local function hasOnlyCommand(flags)
+  return flags.cmd and not flags.alt and not flags.ctrl and not flags.fn and not flags.shift
+end
+
+local cleanClipboardTap = eventtap.new({ eventtap.event.types.keyDown }, function(event)
+  if event:getKeyCode() ~= keycodes.c then
+    return false
+  end
+
+  if not hasOnlyCommand(event:getFlags()) then
+    return false
+  end
+
+  if not isGhostty(hs.application.frontmostApplication()) then
+    return false
+  end
+
+  cleanGhosttyClipboard()
+  return true
+end)
+
+cleanClipboardTap:start()

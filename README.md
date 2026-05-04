@@ -62,7 +62,9 @@ npm run start
 npm run clean:clipboard
 ```
 
-也可以通过 Hammerspoon 把 Ghostty 里的 `Command+Shift+C` 绑定成“清理当前剪切板”。推荐配合 Ghostty 的 `copy-on-select` 使用：先选中终端文本，让 Ghostty 自动复制原文；再按 `Command+Shift+C`，剪切板会被替换成清理后的文本。
+也可以通过 Hammerspoon 把 Ghostty 里的 `Command+C` 绑定成“清理当前剪切板”。推荐配合 Ghostty 的 `copy-on-select = clipboard` 使用：先选中终端文本，让 Ghostty 自动复制原文；再按 `Command+C`，剪切板会被替换成清理后的文本。
+
+Hammerspoon 配置使用 event tap：只有前台应用是 Ghostty 时才拦截 `Command+C`；其他应用里的 `Command+C` 会按系统原样复制。
 
 本仓库提供了 Hammerspoon 配置：
 
@@ -88,7 +90,7 @@ terminal-markdown-cleaner/
 ├── bin/
 │   └── clean-terminal-markdown.mjs # stdin/stdout 和剪切板 CLI
 ├── hammerspoon/
-│   └── init.lua            # Ghostty Command+Shift+C 清理剪切板
+│   └── init.lua            # Ghostty Command+C 清理剪切板
 ├── test/                   # Node 内置 test runner 测试
 └── docs/plans/             # 开发过程中的设计记录
 ```
