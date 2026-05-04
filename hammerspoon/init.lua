@@ -1,5 +1,6 @@
 local cleanerScript =
   "/Users/shan/projects/productivity/terminal-markdown-cleaner/bin/clean-terminal-markdown.mjs"
+local nodeBinary = "/Users/shan/.nvm/versions/node/v22.16.0/bin/node"
 
 local eventtap = hs.eventtap
 local keycodes = hs.keycodes.map
@@ -27,7 +28,7 @@ local function cleanGhosttyClipboard()
     if stdErr and stdErr ~= "" then
       print(stdErr)
     end
-  end, { "node", cleanerScript, "--clipboard" })
+  end, { nodeBinary, cleanerScript, "--clipboard" })
 
   task:start()
 end
