@@ -86,6 +86,39 @@ npm run check
 
 这个项目没有外部 npm 依赖。测试使用 Node.js 自带的 `node:test`。
 
+## GitHub 同步
+
+仓库地址：
+
+```text
+https://github.com/33sunny/terminal-markdown-cleaner
+```
+
+这是一个 private 仓库。新电脑需要先登录有权限的 GitHub 账户：
+
+```bash
+gh auth login
+```
+
+或配置好 GitHub HTTPS token / SSH key。
+
+登录后，如果是第一次从 GitHub 获取项目，直接 clone：
+
+```bash
+git clone https://github.com/33sunny/terminal-markdown-cleaner.git
+cd terminal-markdown-cleaner
+```
+
+如果是在已有的本地文件夹里接入远端历史，先确认没有要丢弃的本地文件，然后执行：
+
+```bash
+git fetch origin main
+git reset --mixed origin/main
+git status
+```
+
+`git reset --mixed origin/main` 会把本地分支接到远端 `main` 的历史上，但保留当前工作区文件，方便把本地改动作为正常 diff 提交。
+
 ## 打包发送
 
 从上一级目录打包整个文件夹：
