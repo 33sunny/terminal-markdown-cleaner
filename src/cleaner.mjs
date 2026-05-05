@@ -109,6 +109,10 @@ function shouldMerge(previous, current) {
     return false;
   }
 
+  if (isFileRecordLine(prev) || isFileRecordLine(next)) {
+    return false;
+  }
+
   if (isMarkdownBlockStart(next)) {
     return false;
   }
@@ -165,11 +169,15 @@ function joinerFor(left, right, settings) {
     return '';
   }
 
-  if (settings.compactCjk && (isCjk(last) || isCjk(first))) {
+  if (last === '-' && /[\p{Letter}\p{Number}_]/u.test(first)) {
     return '';
   }
 
-  if (last === '-' && /[\p{Letter}\p{Number}_]/u.test(first)) {
+  if (last === '/') {
+    return '';
+  }
+
+  if (/[:：、，,；;]$/u.test(left.trimEnd())) {
     return '';
   }
 
@@ -177,7 +185,27 @@ function joinerFor(left, right, settings) {
     return '';
   }
 
+  if (settings.compactCjk && (isCjk(last) || isCjk(first))) {
+    return needsSpaceAroundMixedCjkToken(left, right) ? ' ' : '';
+  }
+
   return ' ';
+}
+
+function needsSpaceAroundMixedCjkToken(left, right) {
+  const last = [...left.trimEnd()].at(-1) ?? '';
+  const first = [...right.trimStart()].at(0) ?? '';
+
+  if (!last || !first || (isCjk(last) && isCjk(first))) {
+    return false;
+  }
+
+  if (isCjk(last)) {
+    return /^[A-Za-z@/#$._-]/u.test(right.trimStart());
+  }
+
+  const trailingToken = left.trimEnd().match(/\S+$/u)?.[0] ?? '';
+  return /[A-Za-z@/#$._-]/u.test(trailingToken);
 }
 
 function isMarkdownBlockStart(line) {
@@ -187,6 +215,7 @@ function isMarkdownBlockStart(line) {
     /^▎\s?/u.test(line) ||
     /^(?:->|→)\s+/u.test(line) ||
     /^(?:[-*+]|\d{1,3}[.)])\s+/u.test(line) ||
+    isEnumeratedListLine(line) ||
     isHorizontalRule(line) ||
     /^\|.*\|$/u.test(line) ||
     /^ {0,3}```/u.test(line) ||
@@ -198,9 +227,43 @@ function isHorizontalRule(line) {
   return /^ {0,3}(?:[-*_]){3,}\s*$/u.test(line);
 }
 
+function isEnumeratedListLine(line) {
+  const trimmed = line.trimStart();
+  return (
+    isOrderedListMarkerLine(trimmed) ||
+    isUnorderedListMarkerLine(trimmed)
+  );
+}
+
+function isOrderedListMarkerLine(line) {
+  const separator = String.raw`(?:[、.．。:)）]\s*|\s+)?`;
+  const requiredSeparator = String.raw`(?:[、.．。:)）]\s*|\s+)`;
+  const cjk = String.raw`[\p{Script=Han}\u3040-\u30ff\uac00-\ud7af]`;
+  return (
+    new RegExp(String.raw`^\d{1,3}(?!\d)${separator}\S`, 'u').test(line) ||
+    new RegExp(String.raw`^[\u2460-\u2473\u3251-\u325f\u32b1-\u32bf]${separator}\S`, 'u').test(line) ||
+    new RegExp(String.raw`^[一二三四五六七八九十百千万零〇两]{1,4}${requiredSeparator}\S`, 'u').test(line) ||
+    new RegExp(String.raw`^[A-Za-z](?:[、.．。:)）]\s*|\s+|(?=${cjk}))\S`, 'u').test(line)
+  );
+}
+
+function isUnorderedListMarkerLine(line) {
+  return /^(?:[*●·•]|-(?!-)|\+(?!\+))(?:[、.．。:)）]\s*|\s+)?\S/u.test(line);
+}
+
 function isShellCommandLine(line) {
   return /^(?:awk|brew|bun|cargo|cat|cd|chmod|chown|code|cp|curl|docker|docker-compose|echo|export|find|git|go|grep|ls|make|mkdir|mv|nano|node|npm|npx|open|pnpm|pwd|python|python3|rg|rm|rsync|scp|sed|ssh|tar|touch|unzip|uv|vim|wget|yarn|zip)(?:\s|$)/u.test(
     line.trim()
+  );
+}
+
+function isFileRecordLine(line) {
+  const filenamePattern =
+    String.raw`\S+\.(?:png|jpe?g|webp|gif|svg|pdf|md|txt|json|csv|tsv|xlsx?|docx?|pptx?|html?|css|mjs|js|ts|tsx|jsx)`;
+  const trimmed = line.trim();
+  return (
+    new RegExp(`^${filenamePattern}$`, 'iu').test(trimmed) ||
+    new RegExp(`^${filenamePattern}[:：]\\s+.+$`, 'iu').test(trimmed)
   );
 }
 

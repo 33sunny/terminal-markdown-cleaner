@@ -54,6 +54,26 @@ npm run start
 
 如果在 Paste 或 Clean 输入框里选中了具体文字，`Command+C` 会保留浏览器原生行为，只复制选中的文字；没有选中文字时，会复制完整 Clean 结果。
 
+## 剪切板清理
+
+如果只想清理当前剪切板，不打开网页，可以运行：
+
+```bash
+npm run clean:clipboard
+```
+
+也可以通过 Hammerspoon 把 Ghostty 里的 `Command+C` 绑定成“清理当前剪切板”。推荐配合 Ghostty 的 `copy-on-select = clipboard` 使用：先选中终端文本，让 Ghostty 自动复制原文；再按 `Command+C`，剪切板会被替换成清理后的文本。
+
+Hammerspoon 配置使用 event tap：只有前台应用是 Ghostty 时才拦截 `Command+C`；其他应用里的 `Command+C` 会按系统原样复制。
+
+本仓库提供了 Hammerspoon 配置：
+
+```text
+hammerspoon/init.lua
+```
+
+首次启动 Hammerspoon 后，需要在 macOS `System Settings` -> `Privacy & Security` -> `Accessibility` 里允许 Hammerspoon，否则全局快捷键不会触发。
+
 ## 项目结构
 
 ```text
@@ -62,10 +82,15 @@ terminal-markdown-cleaner/
 ├── styles.css              # 页面样式
 ├── src/
 │   ├── app.mjs             # UI 绑定、tab、复制、预览
+│   ├── clipboard-cleaner.mjs # 剪切板/CLI 清理入口
 │   ├── cleaner.mjs         # Markdown 文本清理
 │   ├── shortcuts.mjs       # 快捷键映射
 │   ├── table-cleaner.mjs   # 终端表格清理和格式转换
 │   └── terminal-grid.mjs   # Box 表格视觉预览
+├── bin/
+│   └── clean-terminal-markdown.mjs # stdin/stdout 和剪切板 CLI
+├── hammerspoon/
+│   └── init.lua            # Ghostty Command+C 清理剪切板
 ├── test/                   # Node 内置 test runner 测试
 └── docs/plans/             # 开发过程中的设计记录
 ```

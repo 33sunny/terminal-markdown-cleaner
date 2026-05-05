@@ -40,6 +40,52 @@ test('preserves separate markdown list items', () => {
   assert.equal(cleanMarkdown(input), input);
 });
 
+test('preserves nonstandard enumerated list markers as separate structural lines', () => {
+  const input = [
+    '项目编码上：',
+    '',
+    '1数字无分隔项目',
+    '2、数字顿号项目',
+    '3.数字点项目',
+    '4 数字空格项目',
+    '①圆圈数字无分隔项目',
+    '②、圆圈数字顿号项目',
+    '③.圆圈数字点项目',
+    '二、中文数字顿号项目',
+    '三.中文数字点项目',
+    'A大写字母无分隔项目',
+    'B、大写字母顿号项目',
+    'C.大写字母点项目',
+    'D）大写字母括号项目',
+    'a小写字母无分隔项目',
+    'b、小写字母顿号项目',
+    'c.小写字母点项目',
+    'd）小写字母括号项目',
+    '*星号无分隔项目',
+    '* 星号空格项目',
+    '●圆点无分隔项目',
+    '·中点无分隔项目',
+    '-短横无分隔项目',
+    '- 短横空格项目',
+    '•项目符号无分隔项目',
+  ].join('\n');
+
+  assert.equal(cleanMarkdown(input), input);
+});
+
+test('does not treat normal Chinese prose starting with 一 as a list item', () => {
+  const input = [
+    '没有独立的命令。"所有目录、不限关键词"的入口就是 claude-resume -s (或 -a / --',
+    'search)，它会先 prompt',
+    '一句 "Search keyword (Enter to show all)"，直接回车不输关键词就是列出所有会话。',
+  ].join('\n');
+
+  assert.equal(
+    cleanMarkdown(input),
+    '没有独立的命令。"所有目录、不限关键词"的入口就是 claude-resume -s (或 -a / --search)，它会先 prompt 一句 "Search keyword (Enter to show all)"，直接回车不输关键词就是列出所有会话。'
+  );
+});
+
 test('preserves arrow-prefixed action lines as separate blocks', () => {
   const input = [
     '  方案二更像“细剧情驱动”：',
@@ -198,6 +244,18 @@ test('keeps adjacent shell commands on separate lines while joining wrapped argu
       '',
       '另一台电脑解压后，它仍然是 Git 仓库，历史记录也在。',
     ].join('\n')
+  );
+});
+
+test('joins wrapped executable paths without inserting a space after slash', () => {
+  const input = [
+    '/Users/shan/projects/tools/sivtr/.install/bin/',
+    'sivtr copy codex out --print',
+  ].join('\n');
+
+  assert.equal(
+    cleanMarkdown(input),
+    '/Users/shan/projects/tools/sivtr/.install/bin/sivtr copy codex out --print'
   );
 });
 
