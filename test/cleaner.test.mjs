@@ -227,7 +227,7 @@ test('keeps adjacent shell commands on separate lines while joining wrapped argu
     '没有服务器时，想搬到另一台电脑，最简单是直接打包整个',
     '文件夹，注意要包含隐藏的 .git 文件夹：',
     '',
-    'cd /Users/shan/projects/productivity',
+    'cd ~/projects/productivity',
     'zip -r terminal-markdown-cleaner.zip terminal-',
     'markdown-cleaner',
     '',
@@ -239,7 +239,7 @@ test('keeps adjacent shell commands on separate lines while joining wrapped argu
     [
       '没有服务器时，想搬到另一台电脑，最简单是直接打包整个文件夹，注意要包含隐藏的 .git 文件夹：',
       '',
-      'cd /Users/shan/projects/productivity',
+      'cd ~/projects/productivity',
       'zip -r terminal-markdown-cleaner.zip terminal-markdown-cleaner',
       '',
       '另一台电脑解压后，它仍然是 Git 仓库，历史记录也在。',
@@ -249,13 +249,13 @@ test('keeps adjacent shell commands on separate lines while joining wrapped argu
 
 test('joins wrapped executable paths without inserting a space after slash', () => {
   const input = [
-    '/Users/shan/projects/tools/sivtr/.install/bin/',
+    '/opt/tools/sivtr/.install/bin/',
     'sivtr copy codex out --print',
   ].join('\n');
 
   assert.equal(
     cleanMarkdown(input),
-    '/Users/shan/projects/tools/sivtr/.install/bin/sivtr copy codex out --print'
+    '/opt/tools/sivtr/.install/bin/sivtr copy codex out --print'
   );
 });
 

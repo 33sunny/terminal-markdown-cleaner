@@ -9,7 +9,7 @@ test('cleans terminal-copied markdown for clipboard use', () => {
     '没有服务器时，想搬到另一台电脑，最简单是直接打包整个',
     '文件夹，注意要包含隐藏的 .git 文件夹：',
     '',
-    'cd /Users/shan/projects/productivity',
+    'cd ~/projects/productivity',
     'zip -r terminal-markdown-cleaner.zip terminal-',
     'markdown-cleaner',
   ].join('\n');
@@ -19,7 +19,7 @@ test('cleans terminal-copied markdown for clipboard use', () => {
     [
       '没有服务器时，想搬到另一台电脑，最简单是直接打包整个文件夹，注意要包含隐藏的 .git 文件夹：',
       '',
-      'cd /Users/shan/projects/productivity',
+      'cd ~/projects/productivity',
       'zip -r terminal-markdown-cleaner.zip terminal-markdown-cleaner',
     ].join('\n')
   );
