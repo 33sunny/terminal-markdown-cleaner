@@ -1,10 +1,7 @@
-local cleanerScript =
-  "/Users/shan/projects/productivity/terminal-markdown-cleaner/bin/clean-terminal-markdown.mjs"
-local nodeBinary = "/Users/shan/.nvm/versions/node/v22.16.0/bin/node"
-
 local eventtap = hs.eventtap
 local keycodes = hs.keycodes.map
 local logFile = "/tmp/terminal-markdown-cleaner-hammerspoon.log"
+local rootFile = os.getenv("HOME") .. "/.hammerspoon/terminal-markdown-cleaner-root"
 
 terminalMarkdownCleanerState = terminalMarkdownCleanerState or {}
 local state = terminalMarkdownCleanerState
@@ -39,6 +36,73 @@ local function log(message)
   file:close()
 end
 
+local function trim(value)
+  if value == nil then
+    return nil
+  end
+
+  return value:gsub("^%s+", ""):gsub("%s+$", "")
+end
+
+local function dirname(path)
+  return path and path:match("(.+)/[^/]+$")
+end
+
+local function readFirstLine(path)
+  local file = io.open(path, "r")
+  if file == nil then
+    return nil
+  end
+
+  local line = file:read("*l")
+  file:close()
+  return trim(line)
+end
+
+local function sourcePath()
+  local source = debug.getinfo(1, "S").source
+  if source:sub(1, 1) == "@" then
+    return source:sub(2)
+  end
+
+  return nil
+end
+
+local function projectRoot()
+  local configuredRoot = readFirstLine(rootFile)
+  if configuredRoot ~= nil and configuredRoot ~= "" then
+    return configuredRoot
+  end
+
+  return dirname(dirname(sourcePath()))
+end
+
+local function findNodeBinary()
+  local output = hs.execute("/bin/zsh -lc 'command -v node'", true)
+  local node = trim(output)
+  if node ~= nil and node ~= "" then
+    return node
+  end
+
+  return nil
+end
+
+local root = projectRoot()
+local cleanerScript = root and (root .. "/bin/clean-terminal-markdown.mjs") or nil
+local nodeBinary = findNodeBinary()
+
+local function ensureAutoLaunch()
+  local ok, result = pcall(hs.autoLaunch, true)
+  if ok then
+    log("auto launch enabled: " .. tostring(result))
+    return
+  end
+
+  log("auto launch enable failed: " .. tostring(result))
+end
+
+ensureAutoLaunch()
+
 local function scheduleAfter(seconds, callback)
   local timer
   timer = hs.timer.doAfter(seconds, function()
@@ -65,6 +129,18 @@ end
 
 local function cleanClipboard(trigger, options)
   local settings = options or {}
+  if cleanerScript == nil then
+    log("clean failed: project root not found")
+    hs.alert.show("Clean failed: project root not found", 1.5)
+    return
+  end
+
+  if nodeBinary == nil then
+    log("clean failed: node not found")
+    hs.alert.show("Clean failed: node not found", 1.5)
+    return
+  end
+
   if state.isCleaning then
     log("clean skipped: already running")
     return

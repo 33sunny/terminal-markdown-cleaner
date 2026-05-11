@@ -1,156 +1,222 @@
 # Terminal Markdown Cleaner
 
-清理从 Ghostty 终端里复制出来的 Claude Code / Codex CLI 输出，让它更适合再粘贴回终端、Markdown 编辑器或文档里。
+Clean Markdown, wrapped prose, and box-drawing tables copied from terminal AI tools such as Claude Code and Codex CLI.
 
-这是一个纯前端静态页面，本地运行，不上传内容，不需要后端服务。
+The project is local-first: text stays on your machine. It can run as a small static web page, a stdin/stdout CLI, or a macOS Ghostty clipboard cleaner.
 
-## 功能
+## What It Solves
 
-- 清理终端复制时带出的 ANSI 控制字符、提示符、缩进和多余终端符号。
-- 合并中文段落的软换行，同时保留 Markdown 列表、引用、分隔线和代码块。
-- 支持普通 Markdown 内容清理。
-- 支持 box drawing 终端表格清理，并可输出为：
-  - `Box`：重新绘制后的终端 box drawing 表格。
-  - `Markdown`：Markdown pipe table。
-- Table 的 Markdown 输出模式会把行首 `▎` 转成标准 Markdown 引用 `>`。
-- Clean 输出框可以手动编辑，再复制最终结果。
+Terminal output is often hard to reuse after copying:
 
-## 快速启动
+- Soft-wrapped Chinese and English paragraphs are split across lines.
+- Commands can pick up extra spaces at terminal wrap points.
+- Claude Code / Codex CLI output may include gutters, prompts, quote bars, ANSI codes, and terminal table borders.
+- Box-drawing tables are awkward to paste into Markdown documents.
 
-在项目目录下启动一个本地静态服务器：
+This cleaner normalizes that copied text while preserving Markdown structure, lists, quotes, fenced code blocks, commands, and tables.
 
-```bash
-cd terminal-markdown-cleaner
-python3 -m http.server 4173
-```
+## Modes
 
-然后打开：
+| Mode | Best For | Requirements |
+| --- | --- | --- |
+| Web app | Manual paste, inspect, and copy | Browser, Python 3 for local server |
+| CLI stdin/stdout | Scripts and one-off terminal cleaning | Node.js |
+| macOS clipboard | Ghostty copy workflow | macOS, Ghostty, Hammerspoon, Node.js |
 
-```text
-http://127.0.0.1:4173/
-```
+The Ghostty clipboard mode is macOS-specific because it uses Hammerspoon plus `pbpaste` / `pbcopy`.
 
-也可以用 npm 脚本启动，不需要安装依赖：
+## Features
 
-```bash
-npm run start
-```
+- Removes ANSI control sequences, terminal chrome, prompts, and extra terminal indentation.
+- Joins terminal soft wraps in prose and commands.
+- Preserves Markdown lists, quotes, horizontal rules, and fenced code blocks.
+- Supports numbered, Chinese-numbered, circled-numbered, alphabetic, and bullet-style list markers.
+- Cleans terminal box-drawing tables.
+- Converts terminal tables to either redrawn box tables or Markdown pipe tables.
+- Runs fully locally; no content is uploaded.
 
-不建议直接双击 `index.html` 打开，因为页面使用了浏览器 ES module，`file://` 模式在部分浏览器里会受限制。
+## Install
 
-## 使用方式
-
-1. 从 Ghostty / Claude Code / Codex CLI 复制终端输出。
-2. 粘贴到左侧 `Paste`。
-3. 根据内容选择 `Markdown` 或 `Table` tab。
-4. 需要表格时，在 Table tab 里选择 `Box` 或 `Markdown` 输出格式。
-5. 在右侧 `Clean` 检查或手动调整结果。
-6. 点击 `Copy`，或按 `Command+C` 复制 Clean 结果。
-
-## 快捷键
-
-- `F1`：清空 Paste 和 Clean。
-- `Command+C`：复制 Clean 结果。
-
-如果在 Paste 或 Clean 输入框里选中了具体文字，`Command+C` 会保留浏览器原生行为，只复制选中的文字；没有选中文字时，会复制完整 Clean 结果。
-
-## 剪切板清理
-
-如果只想清理当前剪切板，不打开网页，可以运行：
-
-```bash
-npm run clean:clipboard
-```
-
-也可以通过 Hammerspoon 把 Ghostty 里的 `Command+C` 绑定成“清理当前剪切板”。推荐配合 Ghostty 的 `copy-on-select = clipboard` 使用：先选中终端文本，让 Ghostty 自动复制原文；再按 `Command+C`，剪切板会被替换成清理后的文本。
-
-Hammerspoon 配置使用 event tap：只有前台应用是 Ghostty 时才拦截 `Command+C`；其他应用里的 `Command+C` 会按系统原样复制。
-
-本仓库提供了 Hammerspoon 配置：
-
-```text
-hammerspoon/init.lua
-```
-
-首次启动 Hammerspoon 后，需要在 macOS `System Settings` -> `Privacy & Security` -> `Accessibility` 里允许 Hammerspoon，否则全局快捷键不会触发。
-
-## 项目结构
-
-```text
-terminal-markdown-cleaner/
-├── index.html              # 页面入口
-├── styles.css              # 页面样式
-├── src/
-│   ├── app.mjs             # UI 绑定、tab、复制、预览
-│   ├── clipboard-cleaner.mjs # 剪切板/CLI 清理入口
-│   ├── cleaner.mjs         # Markdown 文本清理
-│   ├── shortcuts.mjs       # 快捷键映射
-│   ├── table-cleaner.mjs   # 终端表格清理和格式转换
-│   └── terminal-grid.mjs   # Box 表格视觉预览
-├── bin/
-│   └── clean-terminal-markdown.mjs # stdin/stdout 和剪切板 CLI
-├── hammerspoon/
-│   └── init.lua            # Ghostty Command+C 清理剪切板
-├── test/                   # Node 内置 test runner 测试
-└── docs/plans/             # 开发过程中的设计记录
-```
-
-## 开发和验证
-
-运行测试：
-
-```bash
-npm test
-```
-
-运行语法检查：
-
-```bash
-npm run check
-```
-
-这个项目没有外部 npm 依赖。测试使用 Node.js 自带的 `node:test`。
-
-## GitHub 同步
-
-仓库地址：
-
-```text
-https://github.com/33sunny/terminal-markdown-cleaner
-```
-
-这是一个 private 仓库。新电脑需要先登录有权限的 GitHub 账户：
-
-```bash
-gh auth login
-```
-
-或配置好 GitHub HTTPS token / SSH key。
-
-登录后，如果是第一次从 GitHub 获取项目，直接 clone：
+Clone the repository:
 
 ```bash
 git clone https://github.com/33sunny/terminal-markdown-cleaner.git
 cd terminal-markdown-cleaner
 ```
 
-如果是在已有的本地文件夹里接入远端历史，先确认没有要丢弃的本地文件，然后执行：
+Install the convenience commands:
 
 ```bash
-git fetch origin main
-git reset --mixed origin/main
-git status
+./bin/install
 ```
 
-`git reset --mixed origin/main` 会把本地分支接到远端 `main` 的历史上，但保留当前工作区文件，方便把本地改动作为正常 diff 提交。
+This creates:
 
-## 打包发送
+```text
+~/bin/copy-clean
+~/bin/copy-clean-web
+```
 
-从上一级目录打包整个文件夹：
+Make sure `~/bin` is in your shell `PATH`. If it is not, add this to your shell config:
 
 ```bash
-cd /Users/shan/projects/productivity
-zip -r terminal-markdown-cleaner.zip terminal-markdown-cleaner
+export PATH="$HOME/bin:$PATH"
 ```
 
-对方解压后按“快速启动”里的方式运行即可。
+No npm install is required. The project uses Node.js built-ins only.
+
+## Ghostty Auto-Clean Setup
+
+Install the macOS apps/tools:
+
+- Ghostty
+- Hammerspoon
+- Node.js
+
+Enable Ghostty copy-on-select in your Ghostty config:
+
+```text
+copy-on-select = clipboard
+```
+
+Then run:
+
+```bash
+copy-clean
+```
+
+This command:
+
+- records this checkout path for Hammerspoon,
+- links the project Hammerspoon config into `~/.hammerspoon/init.lua` when possible,
+- starts Hammerspoon,
+- reloads the Hammerspoon config.
+
+On first use, macOS may require Hammerspoon permissions. Open `System Settings` -> `Privacy & Security` -> `Accessibility`, then allow Hammerspoon.
+
+Hammerspoon is set to launch at login. After that, you should not need to run `copy-clean` every time you open Ghostty. Use it only as a recovery command if copying stops being cleaned.
+
+### Existing Hammerspoon Users
+
+If you already have a custom `~/.hammerspoon/init.lua`, `copy-clean` will not overwrite it. It prints a `dofile(...)` line instead. Add that line to your existing Hammerspoon config, then reload Hammerspoon.
+
+## Daily Use
+
+For Ghostty:
+
+1. Select text in Ghostty. With `copy-on-select = clipboard`, Ghostty copies it to the clipboard.
+2. Hammerspoon sees that Ghostty changed the clipboard.
+3. The cleaner replaces the clipboard content with the cleaned version.
+4. Paste normally anywhere.
+
+The automation does not take over global `Command+C` in other apps. It only reacts while Ghostty is the frontmost application.
+
+Shortcut:
+
+- `Command+Shift+C` in Ghostty forces a table-aware Markdown cleanup of the current clipboard.
+
+## Web App
+
+Open the local web cleaner:
+
+```bash
+copy-clean-web
+```
+
+It starts a local server and opens:
+
+```text
+http://127.0.0.1:4173/
+```
+
+The web app has two cleaning tabs:
+
+- `Markdown`: general terminal Markdown cleanup.
+- `Table`: table-aware cleanup with `Box` and `Markdown` output formats.
+
+You can also start the web app manually:
+
+```bash
+python3 -m http.server 4173 --bind 127.0.0.1
+```
+
+Then open `http://127.0.0.1:4173/`.
+
+## CLI
+
+Clean stdin to stdout:
+
+```bash
+node bin/clean-terminal-markdown.mjs < input.txt > output.md
+```
+
+Clean the macOS clipboard in place:
+
+```bash
+node bin/clean-terminal-markdown.mjs --clipboard
+```
+
+Use table Markdown output:
+
+```bash
+node bin/clean-terminal-markdown.mjs --clipboard --table-format markdown
+```
+
+## Web Shortcuts
+
+Inside the web app:
+
+- `F1`: clear Paste and Clean.
+- `Command+C`: copy the full Clean result when no text is selected.
+
+If text is selected inside a textarea, `Command+C` keeps the browser's native selected-text copy behavior.
+
+## Project Structure
+
+```text
+terminal-markdown-cleaner/
+├── index.html                    # Web app entry
+├── styles.css                    # Web app styles
+├── bin/
+│   ├── clean-terminal-markdown.mjs # stdin/stdout and clipboard CLI
+│   ├── copy-clean                # Start/recover Ghostty clipboard cleanup
+│   ├── copy-clean-web            # Open the local web app
+│   └── install                   # Install convenience commands to ~/bin
+├── hammerspoon/
+│   └── init.lua                  # Ghostty clipboard cleaner integration
+├── src/
+│   ├── app.mjs                   # Web UI bindings
+│   ├── clipboard-cleaner.mjs     # CLI cleaning entry
+│   ├── cleaner.mjs               # Markdown cleanup
+│   ├── shortcuts.mjs             # Web keyboard shortcuts
+│   ├── table-cleaner.mjs         # Terminal table cleanup
+│   └── terminal-grid.mjs         # Box-table preview helpers
+└── test/                         # Node test runner tests
+```
+
+## Development
+
+Run tests:
+
+```bash
+npm test
+```
+
+Run syntax checks:
+
+```bash
+npm run check
+```
+
+The project has no runtime npm dependencies. Tests use Node.js built-in `node:test`.
+
+## Limitations
+
+- Ghostty auto-clean is designed for macOS and Hammerspoon.
+- Clipboard mode uses macOS `pbpaste` and `pbcopy`.
+- Existing Hammerspoon configs require manual `dofile(...)` integration.
+- Cleaning rules are heuristic because terminal AI tools do not expose semantic document structure.
+
+## License
+
+No open-source license has been selected yet. Add a license before making the repository public if you want other people to reuse, modify, or redistribute the project.

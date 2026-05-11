@@ -8,6 +8,6 @@
     "clean": "node bin/clean-terminal-markdown.mjs",
     "clean:clipboard": "node bin/clean-terminal-markdown.mjs --clipboard",
     "test": "node --test test/*.test.mjs",
-    "check": "node --check bin/clean-terminal-markdown.mjs && node --check src/app.mjs && node --check src/cleaner.mjs && node --check src/clipboard-cleaner.mjs && node --check src/shortcuts.mjs && node --check src/table-cleaner.mjs && node --check src/terminal-grid.mjs"
+    "check": "zsh -n bin/install bin/copy-clean bin/copy-clean-web && node --check bin/clean-terminal-markdown.mjs && node --check src/app.mjs && node --check src/cleaner.mjs && node --check src/clipboard-cleaner.mjs && node --check src/shortcuts.mjs && node --check src/table-cleaner.mjs && node --check src/terminal-grid.mjs"
   }
 }

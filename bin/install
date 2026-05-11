@@ -1,0 +1,20 @@
+#!/bin/zsh
+set -euo pipefail
+
+SCRIPT_PATH="${0:A}"
+PROJECT_ROOT="${SCRIPT_PATH:h:h}"
+INSTALL_DIR="$HOME/bin"
+
+mkdir -p "$INSTALL_DIR"
+ln -sfn "$PROJECT_ROOT/bin/copy-clean" "$INSTALL_DIR/copy-clean"
+ln -sfn "$PROJECT_ROOT/bin/copy-clean-web" "$INSTALL_DIR/copy-clean-web"
+
+if [[ ":$PATH:" != *":$INSTALL_DIR:"* ]]; then
+  echo "Installed commands to $INSTALL_DIR, but it is not in PATH."
+  echo "Add this to your shell config:"
+  echo "export PATH=\"\$HOME/bin:\$PATH\""
+else
+  echo "Installed copy-clean and copy-clean-web to $INSTALL_DIR."
+fi
+
+echo "Run copy-clean once to start Ghostty clipboard cleanup."

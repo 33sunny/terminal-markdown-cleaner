@@ -1,0 +1,72 @@
+#!/bin/zsh
+set -euo pipefail
+
+SCRIPT_PATH="${0:A}"
+PROJECT_ROOT="${SCRIPT_PATH:h:h}"
+PORT="4173"
+URL="http://127.0.0.1:4173/"
+LOG_FILE="/tmp/terminal-markdown-cleaner-web.log"
+LABEL="com.shan.terminal-markdown-cleaner.web"
+PLIST="/tmp/$LABEL.plist"
+DOMAIN="gui/$UID"
+PYTHON="$(command -v python3)"
+
+server_is_running() {
+  /usr/bin/curl -fsS "$URL" 2>/dev/null | /usr/bin/grep -q "Terminal Markdown Cleaner"
+}
+
+write_plist() {
+  cat >"$PLIST" <<PLIST
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+  "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>$LABEL</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>$PYTHON</string>
+    <string>-m</string>
+    <string>http.server</string>
+    <string>$PORT</string>
+    <string>--bind</string>
+    <string>127.0.0.1</string>
+    <string>--directory</string>
+    <string>$PROJECT_ROOT</string>
+  </array>
+  <key>RunAtLoad</key>
+  <true/>
+  <key>StandardOutPath</key>
+  <string>$LOG_FILE</string>
+  <key>StandardErrorPath</key>
+  <string>$LOG_FILE</string>
+</dict>
+</plist>
+PLIST
+}
+
+start_server() {
+  write_plist
+  launchctl bootout "$DOMAIN/$LABEL" >/dev/null 2>&1 || true
+  launchctl bootstrap "$DOMAIN" "$PLIST"
+
+  for _ in {1..20}; do
+    if server_is_running; then
+      return 0
+    fi
+    sleep 0.1
+  done
+
+  echo "copy-clean-web failed to start $URL"
+  echo "Recent log:"
+  tail -n 20 "$LOG_FILE" 2>/dev/null || true
+  return 1
+}
+
+if ! server_is_running; then
+  start_server
+fi
+
+open "$URL"
+echo "copy-clean-web opened $URL"
