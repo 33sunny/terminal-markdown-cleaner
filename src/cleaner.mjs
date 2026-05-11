@@ -62,7 +62,7 @@ function mergeMarkdownLines(lines, settings) {
         inFence = false;
         fenceMarker = null;
       }
-      output.push(structuralLine);
+      output.push(trimmed);
       continue;
     }
 

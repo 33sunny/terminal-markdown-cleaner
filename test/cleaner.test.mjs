@@ -222,6 +222,27 @@ test('keeps fenced code blocks verbatim after terminal cleanup', () => {
   );
 });
 
+test('normalizes indented code fence delimiters', () => {
+  const input = [
+    'Before using any Chrome DevTools MCP tool, verify the debugging port is active:',
+    '',
+    '```bash',
+    'curl -s http://127.0.0.1:9222/json/version',
+    ' ```',
+  ].join('\n');
+
+  assert.equal(
+    cleanMarkdown(input),
+    [
+      'Before using any Chrome DevTools MCP tool, verify the debugging port is active:',
+      '',
+      '```bash',
+      'curl -s http://127.0.0.1:9222/json/version',
+      '```',
+    ].join('\n')
+  );
+});
+
 test('keeps adjacent shell commands on separate lines while joining wrapped arguments', () => {
   const input = [
     '没有服务器时，想搬到另一台电脑，最简单是直接打包整个',
