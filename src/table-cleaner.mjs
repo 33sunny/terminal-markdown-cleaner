@@ -30,6 +30,15 @@ export function cleanTableText(input, options = {}) {
 
   for (let index = 0; index < lines.length; index += 1) {
     const line = lines[index];
+    if (isMarkdownPipeTableStart(lines, index)) {
+      flushText();
+
+      const table = collectMarkdownPipeTable(lines, index);
+      parts.push(renderMarkdownPipeTable(table.header, table.rows));
+      index = table.nextIndex - 1;
+      continue;
+    }
+
     if (!isBoxTableLine(line)) {
       textBuffer.push(line);
       continue;
@@ -60,6 +69,99 @@ function normalizeMarkdownOutputText(text, options) {
   }
 
   return text.replace(/^(\s*)▎\s?/gmu, '$1> ');
+}
+
+function isMarkdownPipeTableStart(lines, index) {
+  return (
+    isMarkdownPipeRowLine(lines[index] ?? '') &&
+    isMarkdownSeparatorLine(lines[index + 1] ?? '')
+  );
+}
+
+function isMarkdownPipeRowLine(line) {
+  const trimmed = line.trim();
+  return trimmed.startsWith('|') && (trimmed.match(/\|/gu) ?? []).length >= 2;
+}
+
+function isMarkdownSeparatorLine(line) {
+  const cells = splitMarkdownPipeCells(line);
+  return cells.length >= 2 && cells.every((cell) => /^:?-{3,}:?$/u.test(cell));
+}
+
+function collectMarkdownPipeTable(lines, startIndex) {
+  const header = splitMarkdownPipeCells(lines[startIndex]);
+  const columnCount = header.length;
+  const rows = [];
+  let rowFragments = [];
+  let index = startIndex + 2;
+
+  while (index < lines.length) {
+    const line = lines[index];
+    if (line.trim() === '') {
+      break;
+    }
+
+    if (isMarkdownPipeRowLine(line)) {
+      if (rowFragments.length > 0) {
+        rows.push(parseMarkdownPipeRow(rowFragments, columnCount));
+      }
+      rowFragments = [line];
+      index += 1;
+      continue;
+    }
+
+    if (rowFragments.length === 0 || isCompleteMarkdownPipeRow(rowFragments, columnCount)) {
+      break;
+    }
+
+    rowFragments.push(line);
+    index += 1;
+  }
+
+  if (rowFragments.length > 0) {
+    rows.push(parseMarkdownPipeRow(rowFragments, columnCount));
+  }
+
+  return { header, rows, nextIndex: index };
+}
+
+function isCompleteMarkdownPipeRow(fragments, columnCount) {
+  const logicalRow = joinFragments(fragments.map((line) => line.trim()).filter(Boolean));
+  return logicalRow.trimEnd().endsWith('|') && splitMarkdownPipeCells(logicalRow).length >= columnCount;
+}
+
+function parseMarkdownPipeRow(fragments, columnCount) {
+  const logicalRow = joinFragments(fragments.map((line) => line.trim()).filter(Boolean));
+  const cells = splitMarkdownPipeCells(logicalRow);
+  const normalized = cells.slice(0, columnCount);
+
+  if (cells.length > columnCount) {
+    normalized[columnCount - 1] = cells.slice(columnCount - 1).join(' | ');
+  }
+
+  while (normalized.length < columnCount) {
+    normalized.push('');
+  }
+
+  return normalized;
+}
+
+function splitMarkdownPipeCells(line) {
+  const trimmed = line.trim();
+  const withoutLeadingPipe = trimmed.startsWith('|') ? trimmed.slice(1) : trimmed;
+  const body = withoutLeadingPipe.endsWith('|')
+    ? withoutLeadingPipe.slice(0, -1)
+    : withoutLeadingPipe;
+
+  return body.split('|').map((cell) => cell.trim());
+}
+
+function renderMarkdownPipeTable(header, rows) {
+  return [
+    renderMarkdownRow(header.map(escapeMarkdownCell)),
+    renderMarkdownRow(header.map(() => '---')),
+    ...rows.map((row) => renderMarkdownRow(row.map(escapeMarkdownCell))),
+  ].join('\n');
 }
 
 function cleanBoxTable(lines, options) {

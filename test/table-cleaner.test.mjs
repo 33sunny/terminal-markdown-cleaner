@@ -157,6 +157,30 @@ test('renders cleaned box drawing tables as markdown pipe tables when requested'
   );
 });
 
+test('repairs terminal-wrapped markdown pipe tables in markdown mode', () => {
+  const input = [
+    '  | 章节 | 时间范围 | 章节内容 | 是否讲具体地点 | 地点 |',
+    '  |---|---:|---|---|---|',
+    '  | 第一章节：100 元苏州挑战开场 | 00:00-00:08 | 说明挑战目',
+    '标：在苏州用 100 元玩一天，覆盖交通、美食、景点。 | 否 | 无',
+    '具体地点，只有城市“苏州” |',
+    '  | 第二章节：从苏州站出发，尝试拙政园和苏博 | 00:08-00:26 |',
+    '挑战从苏州站开始，坐地铁去拙政园；发现拙政园门票 70 元太贵；',
+    '旁边苏州博物馆免费但需要提前预约，于是放弃。 | 是 | 苏州站、',
+    '拙政园、苏州博物馆 |',
+  ].join('\n');
+
+  assert.equal(
+    cleanTableText(input, { tableOutputFormat: 'markdown' }),
+    [
+      '| 章节 | 时间范围 | 章节内容 | 是否讲具体地点 | 地点 |',
+      '| --- | --- | --- | --- | --- |',
+      '| 第一章节：100 元苏州挑战开场 | 00:00-00:08 | 说明挑战目标：在苏州用 100 元玩一天，覆盖交通、美食、景点。 | 否 | 无具体地点，只有城市“苏州” |',
+      '| 第二章节：从苏州站出发，尝试拙政园和苏博 | 00:08-00:26 | 挑战从苏州站开始，坐地铁去拙政园；发现拙政园门票 70 元太贵；旁边苏州博物馆免费但需要提前预约，于是放弃。 | 是 | 苏州站、拙政园、苏州博物馆 |',
+    ].join('\n')
+  );
+});
+
 test('normalizes terminal quote bars to markdown quotes in table markdown mode', () => {
   const input = [
     '  对外：',
