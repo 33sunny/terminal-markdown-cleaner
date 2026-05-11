@@ -101,7 +101,10 @@ function collectMarkdownPipeTable(lines, startIndex) {
       break;
     }
 
-    if (isMarkdownPipeRowLine(line)) {
+    if (
+      isMarkdownPipeRowLine(line) &&
+      (rowFragments.length === 0 || isCompleteMarkdownPipeRow(rowFragments, columnCount))
+    ) {
       if (rowFragments.length > 0) {
         rows.push(parseMarkdownPipeRow(rowFragments, columnCount));
       }

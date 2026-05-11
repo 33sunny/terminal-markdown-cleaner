@@ -181,6 +181,27 @@ test('repairs terminal-wrapped markdown pipe tables in markdown mode', () => {
   );
 });
 
+test('keeps leading-pipe continuations in the same markdown table row', () => {
+  const input = [
+    '  | 章节 | 时间范围 | 章节内容 | 是否讲具体地点 | 地点 |',
+    '  |---|---:|---|---|---|',
+    '  | 第四章节：平江路老街 | 00:57-01:53 | 走到平江路，天气很热，',
+    '买水、试吃辣椒、买蜜雪冰城，感受老街、小河、周边住宅区。',
+    '  | 是 | 平江路 |',
+    '  | 第五章节：金鸡湖与东方之门 | 01:53-02:41 | 花 3 元坐地铁到金鸡湖 | 是 | 金鸡湖 |',
+  ].join('\n');
+
+  assert.equal(
+    cleanTableText(input, { tableOutputFormat: 'markdown' }),
+    [
+      '| 章节 | 时间范围 | 章节内容 | 是否讲具体地点 | 地点 |',
+      '| --- | --- | --- | --- | --- |',
+      '| 第四章节：平江路老街 | 00:57-01:53 | 走到平江路，天气很热，买水、试吃辣椒、买蜜雪冰城，感受老街、小河、周边住宅区。 | 是 | 平江路 |',
+      '| 第五章节：金鸡湖与东方之门 | 01:53-02:41 | 花 3 元坐地铁到金鸡湖 | 是 | 金鸡湖 |',
+    ].join('\n')
+  );
+});
+
 test('normalizes terminal quote bars to markdown quotes in table markdown mode', () => {
   const input = [
     '  对外：',
