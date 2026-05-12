@@ -46,6 +46,14 @@ test('Hammerspoon config is portable across clone locations', async () => {
   assert.match(source, /command -v node/);
 });
 
+test('Hammerspoon queues manual markdown clean while another clean is running', async () => {
+  const source = await readFile('hammerspoon/init.lua', 'utf8');
+
+  assert.match(source, /pendingManualMarkdownClean/);
+  assert.match(source, /clean queued: manual markdown/);
+  assert.match(source, /manual markdown queued/);
+});
+
 test('copy-clean records the project root for Hammerspoon', async () => {
   const source = await readFile('bin/copy-clean', 'utf8');
 

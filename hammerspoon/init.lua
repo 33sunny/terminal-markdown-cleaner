@@ -25,6 +25,7 @@ state.lastCleanedText = nil
 state.lastPasteboardText = hs.pasteboard.getContents()
 state.lastRawClipboardText = nil
 state.lastRawClipboardAt = 0
+state.pendingManualMarkdownClean = nil
 
 local function log(message)
   local file = io.open(logFile, "a")
@@ -142,6 +143,15 @@ local function cleanClipboard(trigger, options)
   end
 
   if state.isCleaning then
+    if settings.force and settings.tableOutputFormat == "markdown" then
+      state.pendingManualMarkdownClean = {
+        sourceText = settings.sourceText,
+        tableOutputFormat = settings.tableOutputFormat,
+      }
+      log("clean queued: manual markdown")
+      return
+    end
+
     log("clean skipped: already running")
     return
   end
@@ -171,18 +181,29 @@ local function cleanClipboard(trigger, options)
 
   local task = hs.task.new("/usr/bin/env", function(exitCode, _, stdErr)
     state.isCleaning = false
+    local pendingManualMarkdownClean = state.pendingManualMarkdownClean
+    state.pendingManualMarkdownClean = nil
 
     if exitCode == 0 then
       state.lastCleanedText = hs.pasteboard.getContents()
       state.lastPasteboardText = state.lastCleanedText
       log("clean success: " .. trigger)
-      return
+    else
+      log("clean failed: " .. tostring(exitCode) .. " " .. tostring(stdErr))
+      hs.alert.show("Clean failed", 1.5)
+      if stdErr and stdErr ~= "" then
+        print(stdErr)
+      end
     end
 
-    log("clean failed: " .. tostring(exitCode) .. " " .. tostring(stdErr))
-    hs.alert.show("Clean failed", 1.5)
-    if stdErr and stdErr ~= "" then
-      print(stdErr)
+    if pendingManualMarkdownClean ~= nil then
+      scheduleAfter(0.01, function()
+        cleanClipboard("manual markdown queued", {
+          force = true,
+          sourceText = pendingManualMarkdownClean.sourceText,
+          tableOutputFormat = pendingManualMarkdownClean.tableOutputFormat,
+        })
+      end)
     end
   end, args)
 

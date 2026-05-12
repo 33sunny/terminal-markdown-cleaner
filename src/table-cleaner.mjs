@@ -30,10 +30,11 @@ export function cleanTableText(input, options = {}) {
 
   for (let index = 0; index < lines.length; index += 1) {
     const line = lines[index];
-    if (isMarkdownPipeTableStart(lines, index)) {
+    const markdownTableStart = findMarkdownPipeTableStart(lines, index);
+    if (markdownTableStart) {
       flushText();
 
-      const table = collectMarkdownPipeTable(lines, index);
+      const table = collectMarkdownPipeTable(lines, markdownTableStart);
       parts.push(renderMarkdownPipeTable(table.header, table.rows));
       index = table.nextIndex - 1;
       continue;
@@ -71,13 +72,6 @@ function normalizeMarkdownOutputText(text, options) {
   return text.replace(/^(\s*)▎\s?/gmu, '$1> ');
 }
 
-function isMarkdownPipeTableStart(lines, index) {
-  return (
-    isMarkdownPipeRowLine(lines[index] ?? '') &&
-    isMarkdownSeparatorLine(lines[index + 1] ?? '')
-  );
-}
-
 function isMarkdownPipeRowLine(line) {
   const trimmed = line.trim();
   return trimmed.startsWith('|') && (trimmed.match(/\|/gu) ?? []).length >= 2;
@@ -88,12 +82,67 @@ function isMarkdownSeparatorLine(line) {
   return cells.length >= 2 && cells.every((cell) => /^:?-{3,}:?$/u.test(cell));
 }
 
-function collectMarkdownPipeTable(lines, startIndex) {
-  const header = splitMarkdownPipeCells(lines[startIndex]);
-  const columnCount = header.length;
+function findMarkdownPipeTableStart(lines, startIndex) {
+  const headerFragments = [];
+  const maxHeaderLines = 3;
+  const endIndex = Math.min(lines.length, startIndex + maxHeaderLines);
+
+  for (let index = startIndex; index < endIndex; index += 1) {
+    const line = lines[index];
+    if (line.trim() === '') {
+      return null;
+    }
+
+    if (isMarkdownSeparatorLine(line)) {
+      if (headerFragments.length === 0) {
+        return null;
+      }
+
+      const headerLine = joinMarkdownHeaderFragments(headerFragments);
+      if (!isMarkdownPipeRowLine(headerLine)) {
+        return null;
+      }
+
+      const header = splitMarkdownPipeCells(headerLine);
+      const separator = splitMarkdownPipeCells(line);
+      if (header.length !== separator.length) {
+        return null;
+      }
+
+      return {
+        header,
+        columnCount: separator.length,
+        separatorIndex: index,
+      };
+    }
+
+    if (headerFragments.length === 0 && !isMarkdownPipeRowLine(line)) {
+      return null;
+    }
+    headerFragments.push(line);
+  }
+
+  return null;
+}
+
+function joinMarkdownHeaderFragments(fragments) {
+  return joinFragments(
+    fragments.map((fragment, index) => {
+      const trimmed = fragment.trim();
+      if (index > 0 && !trimmed.startsWith('|') && trimmed.endsWith('|')) {
+        return `| ${trimmed}`;
+      }
+      return trimmed;
+    })
+  );
+}
+
+function collectMarkdownPipeTable(lines, tableStart) {
+  const header = tableStart.header;
+  const columnCount = tableStart.columnCount;
   const rows = [];
   let rowFragments = [];
-  let index = startIndex + 2;
+  let index = tableStart.separatorIndex + 1;
 
   while (index < lines.length) {
     const line = lines[index];
