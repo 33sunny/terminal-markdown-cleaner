@@ -109,6 +109,10 @@ function shouldMerge(previous, current) {
     return false;
   }
 
+  if (isCodeLikeLine(prev) || isCodeLikeLine(next)) {
+    return false;
+  }
+
   if (isFileRecordLine(prev) || isFileRecordLine(next)) {
     return false;
   }
@@ -252,8 +256,28 @@ function isUnorderedListMarkerLine(line) {
 }
 
 function isShellCommandLine(line) {
-  return /^(?:awk|brew|bun|cargo|cat|cd|chmod|chown|code|cp|curl|docker|docker-compose|echo|export|find|git|go|grep|ls|make|mkdir|mv|nano|node|npm|npx|open|pnpm|pwd|python|python3|rg|rm|rsync|scp|sed|ssh|tar|touch|unzip|uv|vim|wget|yarn|zip)(?:\s|$)/u.test(
-    line.trim()
+  const trimmed = line.trim();
+  return (
+    /^(?:awk|brew|bun|cargo|cat|cd|chmod|chown|code|cp|curl|docker|docker-compose|echo|export|find|git|go|grep|ls|make|mkdir|mv|nano|node|npm|npx|open|pnpm|pwd|python|python3|rg|rm|rsync|scp|sed|ssh|tar|touch|unzip|uv|vim|wget|yarn|zip)(?:\s|$)/u.test(
+      trimmed
+    ) || isCustomCommandInvocationLine(trimmed)
+  );
+}
+
+function isCustomCommandInvocationLine(line) {
+  const match = line.match(/^(?<command>[A-Za-z0-9_.-]+)\s+\S/u);
+  return Boolean(match?.groups?.command.includes('-'));
+}
+
+function isCodeLikeLine(line) {
+  const trimmed = line.trim();
+  return (
+    /^[{[\]}),;]+,?$/u.test(trimmed) ||
+    /^["'][^"']+["']\s*:/u.test(trimmed) ||
+    /^[A-Za-z_$][\w$]*\s*:\s*(?:["'{[\d-]|true\b|false\b|null\b)/u.test(trimmed) ||
+    /^(?:const|let|var|return|if|else|for|while|switch|case|class|function|import|export)\b/u.test(
+      trimmed
+    )
   );
 }
 

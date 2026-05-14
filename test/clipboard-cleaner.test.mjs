@@ -41,6 +41,43 @@ test('CLI cleans stdin to stdout', () => {
   assert.equal(result.stderr, '');
 });
 
+test('quotes cleaned clipboard text when requested', () => {
+  const input = [
+    '  这轮 6 个窗口的判断：',
+    '',
+    '  - guilin_mati：needs_more_evidence，但建议搜 宏源糕点·马蹄',
+    '  糕，下一步应走 AMap 验证。',
+    '  - guilin_xiying：选中 mp_002_cand_03，理由是画面有 喜盈门保',
+    '  健糖水店 和 铁西。',
+  ].join('\n');
+
+  assert.equal(
+    cleanClipboardText(input, { quoteOutput: true }),
+    [
+      '> 这轮 6 个窗口的判断：',
+      '>',
+      '> - guilin_mati：needs_more_evidence，但建议搜 宏源糕点·马蹄糕，下一步应走 AMap 验证。',
+      '> - guilin_xiying：选中 mp_002_cand_03，理由是画面有 喜盈门保健糖水店 和 铁西。',
+    ].join('\n')
+  );
+});
+
+test('CLI quotes cleaned stdin to stdout', () => {
+  const result = spawnSync(
+    process.execPath,
+    ['bin/clean-terminal-markdown.mjs', '--quote'],
+    {
+      cwd: new URL('..', import.meta.url),
+      input: ['  第一行', '', '  第二行'].join('\n'),
+      encoding: 'utf8',
+    }
+  );
+
+  assert.equal(result.status, 0, result.stderr);
+  assert.equal(result.stdout, ['> 第一行', '>', '> 第二行'].join('\n'));
+  assert.equal(result.stderr, '');
+});
+
 test('preserves filename inventory lines while merging surrounding prose wraps', () => {
   const input = [
     '01-旅游美食-list.png',

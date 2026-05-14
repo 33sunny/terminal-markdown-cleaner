@@ -222,6 +222,43 @@ test('keeps fenced code blocks verbatim after terminal cleanup', () => {
   );
 });
 
+test('keeps terminal-rendered json object blocks on separate lines', () => {
+  const input = [
+    '  举例：',
+    '',
+    '  走路5分钟，去喜盈门糖水铺',
+    '',
+    '  会抽成：',
+    '',
+    '  {',
+    '      "mode": "walk",',
+    '      "durationMinutes": 5,',
+    '      "targetText": "喜盈门糖水铺"',
+    '  }',
+    '',
+    '  但这种规则会有明显局限：',
+  ].join('\n');
+
+  assert.equal(
+    cleanMarkdown(input),
+    [
+      '举例：',
+      '',
+      '走路5分钟，去喜盈门糖水铺',
+      '',
+      '会抽成：',
+      '',
+      '{',
+      '    "mode": "walk",',
+      '    "durationMinutes": 5,',
+      '    "targetText": "喜盈门糖水铺"',
+      '}',
+      '',
+      '但这种规则会有明显局限：',
+    ].join('\n')
+  );
+});
+
 test('normalizes indented code fence delimiters', () => {
   const input = [
     'Before using any Chrome DevTools MCP tool, verify the debugging port is active:',
@@ -239,6 +276,26 @@ test('normalizes indented code fence delimiters', () => {
       '```bash',
       'curl -s http://127.0.0.1:9222/json/version',
       '```',
+    ].join('\n')
+  );
+});
+
+test('keeps adjacent custom command invocations separate', () => {
+  const input = [
+    '  如果你想用 codex-proxy 接管打开这条会话，目前要手动用完整',
+    '  session id:',
+    '',
+    '  cd /Users/shan/projects/productivity',
+    '  codex-proxy resume 019df47d-2bad-7df0-8e17-f6e6f63df0cf',
+  ].join('\n');
+
+  assert.equal(
+    cleanMarkdown(input),
+    [
+      '如果你想用 codex-proxy 接管打开这条会话，目前要手动用完整 session id:',
+      '',
+      'cd /Users/shan/projects/productivity',
+      'codex-proxy resume 019df47d-2bad-7df0-8e17-f6e6f63df0cf',
     ].join('\n')
   );
 });

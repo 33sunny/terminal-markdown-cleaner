@@ -10,7 +10,7 @@ const args = process.argv.slice(2);
 if (args.includes('--help') || args.includes('-h')) {
   process.stdout.write(
     [
-      'Usage: clean-terminal-markdown [--clipboard] [--mode markdown|auto] [--table-format box|markdown]',
+      'Usage: clean-terminal-markdown [--clipboard] [--mode markdown|auto] [--table-format box|markdown] [--quote]',
       '',
       'Without --clipboard, reads stdin and writes cleaned text to stdout.',
       'With --clipboard, reads macOS clipboard and replaces it with cleaned text.',
@@ -23,6 +23,7 @@ if (args.includes('--help') || args.includes('-h')) {
 const options = {
   mode: optionValue('--mode') ?? 'auto',
   tableOutputFormat: optionValue('--table-format') ?? 'box',
+  quoteOutput: args.includes('--quote'),
 };
 
 const useClipboard = args.includes('--clipboard');

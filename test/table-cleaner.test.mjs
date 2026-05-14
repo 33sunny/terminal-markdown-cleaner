@@ -227,6 +227,31 @@ test('repairs terminal-wrapped markdown pipe table headers', () => {
   );
 });
 
+test('repairs markdown pipe headers wrapped inside a column name', () => {
+  const input = [
+    '  | Window | 判断结果 | 地图点结论 | 搜索/候选 | 置信度 | 下一',
+    '步 |',
+    '  | --- | --- | --- | --- | ---: | --- |',
+    '  | 桂林 马蹄糕 | needs_more_evidence | unresolved | 建议搜 宏源糕点·马蹄糕 | 0.3 | amap_search |',
+    '  | 桂林 喜盈门 | select_candidate | route_point | 选中',
+    'mp_002_cand_03，即喜盈门保健糖水店 | 0.8 | none |',
+    '  | 贵州 江口县/梵净山/挂扣村 | needs_more_evidence |',
+    'unresolved | 建议搜 挂扣村、江口县挂扣村、梵净山 | 0.7 |',
+    'amap_search |',
+  ].join('\n');
+
+  assert.equal(
+    cleanTableText(input, { tableOutputFormat: 'markdown' }),
+    [
+      '| Window | 判断结果 | 地图点结论 | 搜索/候选 | 置信度 | 下一步 |',
+      '| --- | --- | --- | --- | --- | --- |',
+      '| 桂林 马蹄糕 | needs_more_evidence | unresolved | 建议搜 宏源糕点·马蹄糕 | 0.3 | amap_search |',
+      '| 桂林 喜盈门 | select_candidate | route_point | 选中mp_002_cand_03，即喜盈门保健糖水店 | 0.8 | none |',
+      '| 贵州 江口县/梵净山/挂扣村 | needs_more_evidence | unresolved | 建议搜 挂扣村、江口县挂扣村、梵净山 | 0.7 | amap_search |',
+    ].join('\n')
+  );
+});
+
 test('normalizes terminal quote bars to markdown quotes in table markdown mode', () => {
   const input = [
     '  对外：',

@@ -126,15 +126,7 @@ function findMarkdownPipeTableStart(lines, startIndex) {
 }
 
 function joinMarkdownHeaderFragments(fragments) {
-  return joinFragments(
-    fragments.map((fragment, index) => {
-      const trimmed = fragment.trim();
-      if (index > 0 && !trimmed.startsWith('|') && trimmed.endsWith('|')) {
-        return `| ${trimmed}`;
-      }
-      return trimmed;
-    })
-  );
+  return joinFragments(fragments.map((fragment) => fragment.trim()));
 }
 
 function collectMarkdownPipeTable(lines, tableStart) {

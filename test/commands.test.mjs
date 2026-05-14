@@ -50,8 +50,16 @@ test('Hammerspoon queues manual markdown clean while another clean is running', 
   const source = await readFile('hammerspoon/init.lua', 'utf8');
 
   assert.match(source, /pendingManualMarkdownClean/);
-  assert.match(source, /clean queued: manual markdown/);
+  assert.match(source, /clean queued: /);
   assert.match(source, /manual markdown queued/);
+});
+
+test('Hammerspoon maps Command Option C to quote clean', async () => {
+  const source = await readFile('hammerspoon/init.lua', 'utf8');
+
+  assert.match(source, /hasCommandOption/);
+  assert.match(source, /manual quote/);
+  assert.match(source, /quoteOutput = true/);
 });
 
 test('copy-clean records the project root for Hammerspoon', async () => {

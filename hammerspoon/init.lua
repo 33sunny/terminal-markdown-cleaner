@@ -143,12 +143,14 @@ local function cleanClipboard(trigger, options)
   end
 
   if state.isCleaning then
-    if settings.force and settings.tableOutputFormat == "markdown" then
+    if settings.force and (settings.tableOutputFormat == "markdown" or settings.quoteOutput) then
       state.pendingManualMarkdownClean = {
+        trigger = settings.quoteOutput and "manual quote queued" or "manual markdown queued",
         sourceText = settings.sourceText,
         tableOutputFormat = settings.tableOutputFormat,
+        quoteOutput = settings.quoteOutput,
       }
-      log("clean queued: manual markdown")
+      log("clean queued: " .. (settings.quoteOutput and "manual quote" or "manual markdown"))
       return
     end
 
@@ -178,6 +180,9 @@ local function cleanClipboard(trigger, options)
     table.insert(args, "--table-format")
     table.insert(args, settings.tableOutputFormat)
   end
+  if settings.quoteOutput then
+    table.insert(args, "--quote")
+  end
 
   local task = hs.task.new("/usr/bin/env", function(exitCode, _, stdErr)
     state.isCleaning = false
@@ -198,10 +203,11 @@ local function cleanClipboard(trigger, options)
 
     if pendingManualMarkdownClean ~= nil then
       scheduleAfter(0.01, function()
-        cleanClipboard("manual markdown queued", {
+        cleanClipboard(pendingManualMarkdownClean.trigger, {
           force = true,
           sourceText = pendingManualMarkdownClean.sourceText,
           tableOutputFormat = pendingManualMarkdownClean.tableOutputFormat,
+          quoteOutput = pendingManualMarkdownClean.quoteOutput,
         })
       end)
     end
@@ -245,7 +251,11 @@ local function hasCommandShift(flags)
   return flags.cmd and flags.shift and not flags.alt and not flags.ctrl and not flags.fn
 end
 
-local function manualMarkdownSourceText()
+local function hasCommandOption(flags)
+  return flags.cmd and flags.alt and not flags.shift and not flags.ctrl and not flags.fn
+end
+
+local function manualSourceText()
   if
     state.lastRawClipboardText ~= nil
     and state.lastRawClipboardText ~= ""
@@ -262,20 +272,30 @@ state.manualCleanTap = eventtap.new({ eventtap.event.types.keyDown }, function(e
     return false
   end
 
-  if not hasCommandShift(event:getFlags()) then
-    return false
-  end
-
   if not isGhostty(hs.application.frontmostApplication()) then
     return false
   end
 
-  cleanClipboard("manual markdown", {
-    force = true,
-    sourceText = manualMarkdownSourceText(),
-    tableOutputFormat = "markdown",
-  })
-  return true
+  local flags = event:getFlags()
+  if hasCommandShift(flags) then
+    cleanClipboard("manual markdown", {
+      force = true,
+      sourceText = manualSourceText(),
+      tableOutputFormat = "markdown",
+    })
+    return true
+  end
+
+  if hasCommandOption(flags) then
+    cleanClipboard("manual quote", {
+      force = true,
+      sourceText = manualSourceText(),
+      quoteOutput = true,
+    })
+    return true
+  end
+
+  return false
 end)
 
 state.manualCleanTap:start()
