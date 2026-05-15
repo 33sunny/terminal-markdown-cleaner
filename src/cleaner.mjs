@@ -31,6 +31,10 @@ function cleanTerminalLine(line, settings) {
   value = value.replace(/^[ \t]*(?:❯|›|➜|λ|\$) {1,4}/u, '');
   value = value.replace(/^[ \t]*[▌█▍▏]+[ \t]*/u, '');
 
+  if (isDirectoryTreeLine(value)) {
+    return value;
+  }
+
   if (/^[ \t]*[╭╮╰╯┌┐└┘├┤┬┴┼─━═╼╾╍╎╏│┃┆┇┊┋]+[ \t]*$/u.test(value)) {
     return value.includes('│') || value.includes('┃') ? '' : null;
   }
@@ -106,6 +110,10 @@ function shouldMerge(previous, current) {
   }
 
   if (isShellCommandLine(prev) && isShellCommandLine(next)) {
+    return false;
+  }
+
+  if (isDirectoryTreeLine(prev) || isDirectoryTreeLine(next)) {
     return false;
   }
 
@@ -267,6 +275,10 @@ function isShellCommandLine(line) {
 function isCustomCommandInvocationLine(line) {
   const match = line.match(/^(?<command>[A-Za-z0-9_.-]+)\s+\S/u);
   return Boolean(match?.groups?.command.includes('-'));
+}
+
+function isDirectoryTreeLine(line) {
+  return /^[ \t]*(?:[├└]──\s+\S|│(?: {2,}|\t+)\S*)/u.test(line);
 }
 
 function isCodeLikeLine(line) {

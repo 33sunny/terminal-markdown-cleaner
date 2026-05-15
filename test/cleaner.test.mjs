@@ -259,6 +259,53 @@ test('keeps terminal-rendered json object blocks on separate lines', () => {
   );
 });
 
+test('preserves terminal-rendered directory trees', () => {
+  const input = [
+    '  03_entity_extraction/',
+    '  ├── README.md',
+    '  ├── extract_entities.py',
+    '  └── outputs/',
+    '      ├── latest -> <batch_id>',
+    '      └── <YYYY-MM-DD_V<n>>/                          # batch 级',
+    '          ├── 01_run.log                              # 脚本写',
+    '          ├── 02_run_output/                          # 各视频产物的包裹目录',
+    '          │   └── <BV[_后缀]>/                        # 视频级',
+    '          │       ├── 01_chapters/',
+    '          │       │',
+    '          │       │   └── ch01/                       # 章节级',
+    '          │       │       ├── 01_prompt.txt',
+    '          │       │       ├── 02_response.txt',
+    '          │       │       └── 03_entities.json        # 解析+校验+丢弃',
+    '          │       ├── 02_entities.json                # 视频级纯聚合',
+    '          │       └── 03_review.md                    # 调试期产物',
+    '          └── 03_review.md                            # 汇总',
+  ].join('\n');
+
+  assert.equal(
+    cleanMarkdown(input),
+    [
+      '03_entity_extraction/',
+      '├── README.md',
+      '├── extract_entities.py',
+      '└── outputs/',
+      '    ├── latest -> <batch_id>',
+      '    └── <YYYY-MM-DD_V<n>>/                          # batch 级',
+      '        ├── 01_run.log                              # 脚本写',
+      '        ├── 02_run_output/                          # 各视频产物的包裹目录',
+      '        │   └── <BV[_后缀]>/                        # 视频级',
+      '        │       ├── 01_chapters/',
+      '        │       │',
+      '        │       │   └── ch01/                       # 章节级',
+      '        │       │       ├── 01_prompt.txt',
+      '        │       │       ├── 02_response.txt',
+      '        │       │       └── 03_entities.json        # 解析+校验+丢弃',
+      '        │       ├── 02_entities.json                # 视频级纯聚合',
+      '        │       └── 03_review.md                    # 调试期产物',
+      '        └── 03_review.md                            # 汇总',
+    ].join('\n')
+  );
+});
+
 test('normalizes indented code fence delimiters', () => {
   const input = [
     'Before using any Chrome DevTools MCP tool, verify the debugging port is active:',
